@@ -53,11 +53,13 @@ class PodTemplateConfigMapStepSuite extends SparkFunSuite {
 
     val step = new PodTemplateConfigMapStep(kubernetesConf)
     val configuredPod = step.configurePod(SparkPod.initialPod())
+    val resourceNamePrefix = kubernetesConf.resourceNamePrefix
 
     assert(configuredPod.pod.getSpec.getVolumes.size() === 1)
     val volume = configuredPod.pod.getSpec.getVolumes.get(0)
     assert(volume.getName === Constants.POD_TEMPLATE_VOLUME)
-    assert(volume.getConfigMap.getName === Constants.POD_TEMPLATE_CONFIGMAP)
+    assert(volume.getConfigMap.getName ===
+      resourceNamePrefix + "-" + Constants.POD_TEMPLATE_CONFIGMAP)
     assert(volume.getConfigMap.getItems.size() === 1)
     assert(volume.getConfigMap.getItems.get(0).getKey === Constants.POD_TEMPLATE_KEY)
     assert(volume.getConfigMap.getItems.get(0).getPath ===
@@ -70,7 +72,8 @@ class PodTemplateConfigMapStepSuite extends SparkFunSuite {
 
     val resources = step.getAdditionalKubernetesResources()
     assert(resources.size === 1)
-    assert(resources.head.getMetadata.getName === Constants.POD_TEMPLATE_CONFIGMAP)
+    assert(resources.head.getMetadata.getName ===
+      resourceNamePrefix + "-" + Constants.POD_TEMPLATE_CONFIGMAP)
     assert(resources.head.isInstanceOf[ConfigMap])
     val configMap = resources.head.asInstanceOf[ConfigMap]
     assert(configMap.getData.size() === 1)
